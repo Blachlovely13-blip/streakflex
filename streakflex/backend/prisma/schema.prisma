@@ -1,0 +1,68 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  telegramId   BigInt   @unique
+  username     String?
+  firstName    String
+  timeZone     String   @default("UTC")
+  reminderTime String   @default("09:00")
+  createdAt    DateTime @default(now())
+
+  habits      Habit[]
+  checkIns    CheckIn[]
+  friendships Friendship[] @relation("UserFriendships")
+  friendOf    Friendship[] @relation("FriendOf")
+}
+
+model Habit {
+  id            String   @id @default(cuid())
+  name          String
+  description   String?
+  category      String
+  frequency     String   @default("daily")
+  reminderTime  String?
+  isPrivate     Boolean  @default(false)
+  shareEnabled  Boolean  @default(true)
+  currentStreak Int      @default(0)
+  longestStreak Int      @default(0)
+  totalDays     Int      @default(0)
+  createdAt     DateTime @default(now())
+
+  userId   String
+  user     User      @relation(fields: [userId], references: [id])
+  checkIns CheckIn[]
+}
+
+model CheckIn {
+  id        String   @id @default(cuid())
+  date      DateTime @default(now())
+  status    String
+  notes     String?
+  createdAt DateTime @default(now())
+
+  habitId String
+  habit   Habit    @relation(fields: [habitId], references: [id])
+  userId  String
+  user    User     @relation(fields: [userId], references: [id])
+
+  @@unique([habitId, date])
+}
+
+model Friendship {
+  id        String   @id @default(cuid())
+  status    String   @default("pending")
+  createdAt DateTime @default(now())
+
+  userId   String
+  user     User   @relation("UserFriendships", fields: [userId], references: [id])
+  friendId String
+  friend   User   @relation("FriendOf", fields: [friendId], references: [id])
+}
