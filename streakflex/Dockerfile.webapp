@@ -1,0 +1,12 @@
+FROM node:20-alpine
+WORKDIR /app
+
+COPY webapp/package*.json ./webapp/
+WORKDIR /app/webapp
+RUN npm install
+
+COPY webapp /app/webapp
+RUN npm run build
+
+EXPOSE 5173
+CMD ["npm", "run", "preview", "--", "--host", "0.0.0.0", "--port", "5173"]
