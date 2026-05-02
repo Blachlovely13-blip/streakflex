@@ -12,6 +12,9 @@ model User {
   telegramId   BigInt   @unique
   username     String?
   firstName    String
+  languageCode String   @default("en")
+  isPro        Boolean  @default(false)
+  aiLastUsedAt DateTime?
   timeZone     String   @default("UTC")
   reminderTime String   @default("09:00")
   createdAt    DateTime @default(now())
@@ -26,7 +29,7 @@ model Habit {
   id            String   @id @default(cuid())
   name          String
   description   String?
-  category      String
+  category      String   @default("custom")
   frequency     String   @default("daily")
   reminderTime  String?
   isPrivate     Boolean  @default(false)
