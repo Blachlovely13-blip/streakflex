@@ -3,25 +3,32 @@ import { prisma } from "../services/prisma.js";
 import { calculateStreaks } from "../services/streaks.js";
 
 const router = Router();
+const FREE_HABITS_LIMIT = 5;
 
 router.get("/", async (req, res) => {
-  const userId = String(req.headers["x-telegram-user-id"] || "");
-  if (!userId) return res.status(400).json({ error: "Missing telegram user id" });
+  const user = req.authUser;
+  if (!user) return res.status(401).json({ error: "Unauthorized" });
 
-  const user = await prisma.user.findUnique({
-    where: { telegramId: BigInt(userId) },
+  const dbUser = await prisma.user.findUnique({
+    where: { id: user.id },
     include: { habits: true },
   });
-  if (!user) return res.json({ habits: [] });
+  if (!dbUser) return res.json({ habits: [] });
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
   const habits = await Promise.all(
-    user.habits.map(async (habit) => {
+    dbUser.habits.map(async (habit) => {
       const checkIns = await prisma.checkIn.findMany({
         where: { habitId: habit.id },
         orderBy: { date: "desc" },
       });
       const streaks = calculateStreaks(checkIns);
-      return { ...habit, ...streaks };
+      const todayCheckIn = checkIns.find(
+        (checkIn) => checkIn.date.getTime() === today.getTime(),
+      );
+      return { ...habit, ...streaks, todayStatus: todayCheckIn?.status };
     }),
   );
 
@@ -29,29 +36,25 @@ router.get("/", async (req, res) => {
 });
 
 router.post("/", async (req, res) => {
-  const userId = String(req.headers["x-telegram-user-id"] || "");
-  if (!userId) return res.status(400).json({ error: "Missing telegram user id" });
+  const user = req.authUser;
+  if (!user) return res.status(401).json({ error: "Unauthorized" });
 
-  const { name, description, category, frequency, reminderTime, shareEnabled } = req.body;
-  if (!name || !category) return res.status(400).json({ error: "name/category required" });
+  const { name } = req.body as { name?: string };
+  if (!name?.trim()) return res.status(400).json({ error: "name required" });
 
-  const user = await prisma.user.upsert({
-    where: { telegramId: BigInt(userId) },
-    update: {},
-    create: {
-      telegramId: BigInt(userId),
-      firstName: "Telegram User",
-    },
-  });
+  const habitsCount = await prisma.habit.count({ where: { userId: user.id } });
+  if (!user.isPro && habitsCount >= FREE_HABITS_LIMIT) {
+    return res.status(402).json({
+      error: "Free plan limit reached",
+      limit: FREE_HABITS_LIMIT,
+      needsPro: true,
+    });
+  }
 
   const habit = await prisma.habit.create({
     data: {
-      name,
-      description,
-      category,
-      frequency: frequency ?? "daily",
-      reminderTime,
-      shareEnabled: shareEnabled ?? true,
+      name: name.trim(),
+      category: "custom",
       userId: user.id,
     },
   });
@@ -60,13 +63,13 @@ router.post("/", async (req, res) => {
 });
 
 router.post("/:habitId/check-in", async (req, res) => {
-  const userId = String(req.headers["x-telegram-user-id"] || "");
+  const user = req.authUser;
   const { habitId } = req.params;
   const { status } = req.body as { status?: string };
-  if (!userId || !status) return res.status(400).json({ error: "missing inputs" });
+  if (!user || !status) return res.status(400).json({ error: "missing inputs" });
 
-  const user = await prisma.user.findUnique({ where: { telegramId: BigInt(userId) } });
-  if (!user) return res.status(404).json({ error: "User not found" });
+  const habit = await prisma.habit.findFirst({ where: { id: habitId, userId: user.id } });
+  if (!habit) return res.status(404).json({ error: "Habit not found" });
 
   const now = new Date();
   now.setHours(0, 0, 0, 0);

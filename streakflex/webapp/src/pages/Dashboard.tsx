@@ -45,7 +45,14 @@ export function Dashboard() {
         </div>
       ) : (
         habits.map((habit) => (
-          <HabitCard key={habit.id} habit={habit} onCheckIn={onCheckIn} />
+          <HabitCard
+            key={habit.id}
+            habit={habit}
+            onCheckIn={onCheckIn}
+            onOpenDetails={() => {}}
+            doneLabel="Done"
+            skipLabel="Skip"
+          />
         ))
       )}
     </div>
