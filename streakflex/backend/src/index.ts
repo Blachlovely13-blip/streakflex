@@ -12,6 +12,13 @@ app.use(cors({ origin: corsOrigin }));
 app.use(express.json());
 
 app.get("/health", (_req, res) => res.json({ ok: true }));
+app.get("/api/user/status", (req, res) => {
+  res.json({ status: "ok" });
+});
+
+app.get("/api/user/me", (req, res) => {
+  res.json({ id: 1, name: "Test User" });
+})
 app.use("/api/webhook", webhookRouter);
 app.use("/api/habits", habitsRouter);
 
