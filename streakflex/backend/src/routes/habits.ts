@@ -6,7 +6,7 @@ const router = Router();
 const FREE_HABITS_LIMIT = 5;
 router.use((req, res, next) => {
   req.authUser = {
-    id: 1,
+    id: "1",
     isPro: false,
   };
   next();
@@ -17,7 +17,7 @@ router.get("/", async (req, res) => {
   if (!user) return res.status(401).json({ error: "Unauthorized" });
 
   const dbUser = await prisma.user.findUnique({
-    where: { id: user.id },
+    where: { id: String {user.id} },
     include: { habits: true },
   });
   if (!dbUser) return res.json({ habits: [] });
@@ -49,7 +49,7 @@ router.post("/", async (req, res) => {
   const { name } = req.body as { name?: string };
   if (!name?.trim()) return res.status(400).json({ error: "name required" });
 
-  const habitsCount = await prisma.habit.count({ where: { userId: user.id } });
+  const habitsCount = await prisma.habit.count({ where: { userId: String {user.id} } });
   if (!user.isPro && habitsCount >= FREE_HABITS_LIMIT) {
     return res.status(402).json({
       error: "Free plan limit reached",
@@ -62,7 +62,7 @@ router.post("/", async (req, res) => {
     data: {
       name: name.trim(),
       category: "custom",
-      userId: user.id,
+      userId: String {user.id},
     },
   });
 
@@ -75,7 +75,7 @@ router.post("/:habitId/check-in", async (req, res) => {
   const { status } = req.body as { status?: string };
   if (!user || !status) return res.status(400).json({ error: "missing inputs" });
 
-  const habit = await prisma.habit.findFirst({ where: { id: habitId, userId: user.id } });
+  const habit = await prisma.habit.findFirst({ where: { id: habitId, userId: String {user.id } });
   if (!habit) return res.status(404).json({ error: "Habit not found" });
 
   const now = new Date();
@@ -84,7 +84,7 @@ router.post("/:habitId/check-in", async (req, res) => {
   const checkIn = await prisma.checkIn.upsert({
     where: { habitId_date: { habitId, date: now } },
     update: { status },
-    create: { habitId, userId: user.id, status, date: now },
+    create: { habitId, userId: String {user.id, status, date: now },
   });
 
   return res.json(checkIn);
