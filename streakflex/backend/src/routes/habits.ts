@@ -4,6 +4,13 @@ import { calculateStreaks } from "../services/streaks.js";
 
 const router = Router();
 const FREE_HABITS_LIMIT = 5;
+router.use((req, res, next) => {
+  req.authUser = {
+    id: 1,
+    isPro: false,
+  };
+  next();
+});
 
 router.get("/", async (req, res) => {
   const user = req.authUser;
