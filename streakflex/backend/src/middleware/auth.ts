@@ -44,7 +44,7 @@ function getUserFromInitData(initData: string): {
       language_code?: string;
     };
     return {
-      telegramId: Number(user.id),
+      telegramId: BigInt(user.id),
       firstName: user.first_name || "Friend",
       languageCode: user.language_code || "en",
     };
@@ -66,7 +66,7 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
       if (!devUserIdValue) {
         return res.status(401).json({ error: "Missing Telegram initData" });
       }
-      const telegramId = Number(devUserIdValue);
+      const telegramId = BigInt(devUserIdValue);
       const user = await prisma.user.upsert({
         where: { telegramId },
         update: {},
