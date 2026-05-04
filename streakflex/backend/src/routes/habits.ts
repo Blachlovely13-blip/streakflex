@@ -6,7 +6,18 @@ const router = Router();
 const FREE_HABITS_LIMIT = 5;
 
 router.use((req, res, next) => {
-  req.authUser = { id: "1", isPro: false };
+  req.authUser = {
+    id: "1",
+    telegramId: BigInt(1),
+    firstName: "Test",
+    languageCode: "en",
+    isPro: false,
+    aiLastUsedAt: null,
+    timeZone: "UTC",
+    reminderTime: "09:00",
+    createdAt: new Date(),
+  };
+
   next();
 });
 
