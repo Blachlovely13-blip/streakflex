@@ -12,10 +12,7 @@ router.use((req, res, next) => {
     firstName: "Test",
     languageCode: "en",
     isPro: false,
-    aiLastUsedAt: null,
-    timeZone: "UTC",
-    reminderTime: "09:00",
-    createdAt: new Date(),
+    
   };
 
   next();
