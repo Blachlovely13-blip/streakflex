@@ -34,7 +34,7 @@ router.get("/", async (req, res) => {
       const streaks = calculateStreaks(checkIns);
 
       const todayCheckIn = checkIns.find(
-        (checkIn) => checkIn.date.getTime() === today.getTime()
+        (c) => c.date.getTime() === today.getTime()
       );
 
       return {
@@ -106,10 +106,7 @@ router.post("/:habitId/check-in", async (req, res) => {
 
   const checkIn = await prisma.checkIn.upsert({
     where: {
-      habitId_date: {
-        habitId,
-        date: now,
-      },
+      habitId_date: { habitId, date: now },
     },
     update: { status },
     create: {
