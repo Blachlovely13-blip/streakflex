@@ -22,10 +22,22 @@ router.get("/", async (req, res) => {
   const user = req.authUser;
   if (!user) return res.status(401).json({ error: "Unauthorized" });
 
-  const dbUser = await prisma.user.findUnique({
+  let dbUser = await prisma.user.findUnique({
     where: { id: String(user.id) },
     include: { habits: true },
   });
+  
+  if (!dbUser) {
+    dbUser = await prisma.user.create({
+      data: {
+        id: String(user.id),
+        telegramId: BigInt(1),
+        firstName: "Test",
+        languageCode: "en",
+      },
+      include: { habits: true },
+    });
+  }
 
   if (!dbUser) return res.json({ habits: [] });
 
