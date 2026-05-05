@@ -16,15 +16,19 @@ export async function getActiveStreaks(userId: number): Promise<ActiveStreak[]> 
       },
     });
 
-    if (!resp.ok) {
-      const data = await resp.json();
-      console.error(data);
-      return [];
-    }
+    const data = await resp.json();
 
-    const data = (await resp.json()) as { habits: ActiveStreak[] };
+if (!resp.ok) {
+  if (resp.status === 402) {
+    alert("Лимит 5 привычек достигнут 🚫");
+    return [];
+  }
 
-    return data.habits.filter((h) => h.currentStreak > 0);
+  console.error(data);
+  return [];
+}
+
+return (data.habits ?? []).filter((h: ActiveStreak) => h.currentStreak > 0);
   } catch {
     return [];
   }
