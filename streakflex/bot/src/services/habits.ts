@@ -10,6 +10,10 @@ export async function getActiveStreaks(userId: number): Promise<ActiveStreak[]> 
 
   try {
     const resp = await fetch(`${backend}/api/habits`, {
+      if (!response.ok) {
+        alert("Лимит 5 привычек достигнут 🚫");
+        return;
+      }
       headers: { "x-telegram-user-id": String(userId) },
     });
     if (!resp.ok) return [];
