@@ -13,27 +13,23 @@ export function CreateHabit({ onCreated }: CreateHabitProps) {
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
+  
     try {
-      try {
-        await apiPost("/api/habits", {
-          name,
-          category,
-          frequency: "daily",
-        });
-      
-        setName("");
-        onCreated();
-      } catch (e: any) {
-        if (e.message?.includes("402")) {
-          alert("Лимит 5 привычек достигнут 🚫");
-          return;
-        }
-      
-        alert("Ошибка при создании привычки");
-      }
-      
+      await apiPost("/api/habits", {
+        name,
+        category,
+        frequency: "daily",
+      });
+  
       setName("");
       onCreated();
+    } catch (e: any) {
+      if (e.message?.includes("402")) {
+        alert("Лимит 5 привычек достигнут 🚫");
+        return;
+      }
+  
+      alert("Ошибка при создании привычки");
     } finally {
       setIsSaving(false);
     }
