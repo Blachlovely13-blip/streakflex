@@ -14,7 +14,22 @@ export function CreateHabit({ onCreated }: CreateHabitProps) {
     e.preventDefault();
     setIsSaving(true);
     try {
-      await apiPost("/api/habits", { name, category, frequency: "daily" });
+      const res = await apiPost("/api/habits", {
+        name,
+        category,
+        frequency: "daily",
+      });
+      
+      if (!res.ok) {
+        if (res.status === 402) {
+          alert("Лимит 5 привычек достигнут 🚫");
+          return;
+        }
+      
+        alert("Ошибка при создании привычки");
+        return;
+      }
+      
       setName("");
       onCreated();
     } finally {
