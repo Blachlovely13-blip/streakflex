@@ -15,7 +15,7 @@ export function CreateHabit({ onCreated }: CreateHabitProps) {
 
   const isLimitReached = habitsCount >= LIMIT;
 
-  // 🔥 загрузка реального состояния с сервера
+  // загрузка реальных привычек
   const loadHabits = async () => {
     try {
       const res = await apiGet<{ habits: any[] }>("/api/habits");
@@ -44,10 +44,7 @@ export function CreateHabit({ onCreated }: CreateHabitProps) {
       });
 
       setName("");
-
-      // 🔥 обновляем реальное состояние после создания
       await loadHabits();
-
       onCreated();
     } finally {
       setIsSaving(false);
@@ -55,17 +52,41 @@ export function CreateHabit({ onCreated }: CreateHabitProps) {
   };
 
   return (
-    <form
-      onSubmit={onSubmit}
-      className="space-y-3 rounded-lg border bg-white p-4"
-    >
+    <form className="space-y-3 rounded-lg border bg-white p-4" onSubmit={onSubmit}>
       <h2 className="text-lg font-bold">Create Habit</h2>
 
-      {/* прогресс */}
+      {/* FREE PLAN */}
       <div className="text-sm text-gray-600">
-        Привычки: <b>{habitsCount}/{LIMIT}</b>
+        Free plan: <b>{habitsCount}/{LIMIT}</b>
       </div>
 
+      {/* PRO SCREEN */}
+      {isLimitReached && (
+        <div className="rounded-lg border bg-gradient-to-br from-gray-900 to-gray-800 p-4 text-white">
+          <h3 className="text-lg font-bold">Unlock Pro 🚀</h3>
+
+          <p className="mt-1 text-sm text-gray-300">
+            Вы достигли лимита Free плана (5 привычек)
+          </p>
+
+          <div className="mt-3 space-y-2 text-sm text-gray-200">
+            <div>✔ Unlimited habits</div>
+            <div>✔ Advanced analytics</div>
+            <div>✔ Streak insights</div>
+            <div>✔ Priority features</div>
+          </div>
+
+          <button
+            type="button"
+            className="mt-4 w-full rounded-md bg-white px-4 py-2 text-black font-semibold hover:bg-gray-200"
+            onClick={() => alert("Здесь будет Pro / Stripe / Telegram Payment")}
+          >
+            Upgrade to Pro
+          </button>
+        </div>
+      )}
+
+      {/* INPUT */}
       <input
         value={name}
         onChange={(e) => setName(e.target.value)}
@@ -75,6 +96,7 @@ export function CreateHabit({ onCreated }: CreateHabitProps) {
         className="w-full rounded-md border px-3 py-2"
       />
 
+      {/* CATEGORY */}
       <select
         value={category}
         onChange={(e) => setCategory(e.target.value)}
@@ -88,13 +110,14 @@ export function CreateHabit({ onCreated }: CreateHabitProps) {
         <option value="custom">Custom</option>
       </select>
 
+      {/* BUTTON */}
       <button
         type="submit"
         disabled={isSaving || isLimitReached}
         className="w-full rounded-md bg-blue-600 px-4 py-2 text-white disabled:opacity-50"
       >
         {isLimitReached
-          ? "Лимит 5/5 достигнут"
+          ? "Перейти на Pro"
           : isSaving
           ? "Saving..."
           : "Save Habit"}
