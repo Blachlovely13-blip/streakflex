@@ -16,20 +16,24 @@ export async function getActiveStreaks(userId: number): Promise<ActiveStreak[]> 
       },
     });
 
+    if (!resp.ok) {
+      const data = await resp.json();
+
+      if (resp.status === 402) {
+        alert("Лимит 5 привычек достигнут 🚫");
+        return [];
+      }
+
+      console.error(data);
+      return [];
+    }
+
     const data = await resp.json();
 
-if (!resp.ok) {
-  if (resp.status === 402) {
-    alert("Лимит 5 привычек достигнут 🚫");
-    return [];
-  }
+    return (data.habits ?? []).filter((h: ActiveStreak) => h.currentStreak > 0);
 
-  console.error(data);
-  return [];
-}
-
-return (data.habits ?? []).filter((h: ActiveStreak) => h.currentStreak > 0);
-  } catch {
+  } catch (e) {
+    console.error(e);
     return [];
   }
 }
