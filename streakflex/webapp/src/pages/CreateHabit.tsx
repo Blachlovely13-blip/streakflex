@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from "react";
+mport { FormEvent, useEffect, useState } from "react";
 import { apiPost, apiGet } from "../services/api";
 
 interface CreateHabitProps {
@@ -15,17 +15,18 @@ export function CreateHabit({ onCreated }: CreateHabitProps) {
 
   const isLimitReached = habitsCount >= LIMIT;
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const res = await apiGet<{ habits: any[] }>("/api/habits");
-        setHabitsCount(res.habits?.length ?? 0);
-      } catch {
-        setHabitsCount(0);
-      }
-    };
+  // 🔥 загрузка реального состояния с сервера
+  const loadHabits = async () => {
+    try {
+      const res = await apiGet<{ habits: any[] }>("/api/habits");
+      setHabitsCount(res.habits?.length ?? 0);
+    } catch {
+      setHabitsCount(0);
+    }
+  };
 
-    load();
+  useEffect(() => {
+    loadHabits();
   }, []);
 
   const onSubmit = async (e: FormEvent) => {
@@ -43,7 +44,10 @@ export function CreateHabit({ onCreated }: CreateHabitProps) {
       });
 
       setName("");
-      setHabitsCount((prev) => prev + 1);
+
+      // 🔥 обновляем реальное состояние после создания
+      await loadHabits();
+
       onCreated();
     } finally {
       setIsSaving(false);
@@ -57,6 +61,7 @@ export function CreateHabit({ onCreated }: CreateHabitProps) {
     >
       <h2 className="text-lg font-bold">Create Habit</h2>
 
+      {/* прогресс */}
       <div className="text-sm text-gray-600">
         Привычки: <b>{habitsCount}/{LIMIT}</b>
       </div>
